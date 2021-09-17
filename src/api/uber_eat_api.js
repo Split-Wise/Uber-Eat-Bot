@@ -7,18 +7,14 @@ axiosCookieJarSupport(axios);
 const cookieJar = new tough.CookieJar();
 
 
-// https://eats.uber.com/group-orders/c9278b82-d972-43c8-9cc8-2b1d54b21c74/join
-const ID = 'c9278b82-d972-43c8-9cc8-2b1d54b21c74';
-
-async function get_cookie(orderID) {
-    var baseURL = `https://eats.uber.com/group-orders/${orderID}/join`;
-    try {
-        return axios.get(baseURL, {jar: cookieJar});
-    } catch(err) {
-        return err;
-    }
-    
-}
+// async function get_cookie(orderID, cookieJar) {
+//     var baseURL = `https://eats.uber.com/group-orders/${orderID}/join`;
+//     try {
+//         return axios.get(baseURL, {jar: cookieJar});
+//     } catch(err) {
+//         return err;
+//     }
+// }
 
 async function add_member(orderID) {
     var baseURL = 'https://www.ubereats.com/api/addMemberToDraftOrderV1';
@@ -75,20 +71,53 @@ async function get_group_order(orderID, full_info) {
 
     try {
         var req = await axios.post(baseURL, data, {headers: headers, jar: cookieJar,});
+
+        if (req.data.status === 'failure') {
+            return req.data.message;
+        }else {
+            if (full_info === true)
+                return req.data.data.groupedItems.map(x => {return {'items':x.items, 'name':x.name}});
+            else
+                return req.data.data.groupedItems.map(x => {return {'items':x.items.map(i => {return {'title':i.title,'price':i.price}}), 'name':x.name}});
+        }
     } catch (err){
-        return err;
+        // console.log(err);
+        console.log('fail to send request in get_group_order');
+        return 'fail'; 
+        // return err;
     };
 
-    if (full_info === true)
-            return req.data.data.groupedItems.map(x => {return {'items':x.items, 'name':x.name}});
-        else
-            return req.data.data.groupedItems.map(x => {return {'items':x.items.map(i => {return {'title':i.title,'price':i.price}}), 'name':x.name}});
+
     
 }
 
 
 async function get_order_status (orderID) {
+    var baseURL = 'https://www.ubereats.com/api/getActiveOrdersV1?localeCode=tw';
+    var headers = {
+        "accept": "*/*",
+        "accept-language": "zh-TW,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6,zh-CN;q=0.5",
+        "content-type": "application/json",
+        "sec-ch-ua-mobile": "?0",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "x-csrf-token": "x",
+    };
+    var data = {
+        "orderUuid": orderID,
+        "timezone": "Asia/Taipei",
+        "showAppUpsellIllustration": true,
+    }
 
+    try {
+        var req = await axios.post(baseURL, data, {headers:headers});
+        return req;
+    } catch (err) {
+        // console.log(err);
+        console.log("fail to send request in get_order_status");
+        return 'fail';
+    }
 }
 
 function print(items) {
@@ -98,18 +127,11 @@ function print(items) {
 }
 
 module.exports = {
+    get_cookie: get_cookie,
     add_member: add_member,
     get_group_order: get_group_order,
+    get_order_status: get_order_status,
+    print: print,
 };
 
 //在 join 的畫面知道是誰赴前的
-
-
-// (async () => {
-//     var req;
-//     req = await add_member(ID);
-//     req = await get_group_order(ID, false);
-//     print(req);
-
-//     // setInterval(async ()=>{ await get_group_order(ID)}, 1500);
-// })();
