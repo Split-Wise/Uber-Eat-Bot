@@ -22,11 +22,7 @@ done
 echo "Start creating branch: $BRANCH_NAME"
 
 # Make sure branch does not exist
-<<<<<<< HEAD
 exists=$(git show-ref refs/heads/$BRANCH_NAME)
-=======
-exists=`git show-ref refs/heads/$BRANCH_NAME`
->>>>>>> 298925713b6126b992f93a3be0b1619154ab92f1
 if [ -n "$exists" ]; then
 	    echo 'branch exists!'
 		exit
