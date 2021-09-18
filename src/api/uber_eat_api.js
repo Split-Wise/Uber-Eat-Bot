@@ -127,7 +127,6 @@ function print(items) {
 }
 
 module.exports = {
-    get_cookie: get_cookie,
     add_member: add_member,
     get_group_order: get_group_order,
     get_order_status: get_order_status,
